@@ -178,7 +178,6 @@ type InvestmentRedemption struct {
 	VaultRequestEffectID            *int64              `db:"vault_request_effect_id" json:"vault_request_effect_id,omitempty"`
 	Status                          RedemptionStatusT   `db:"status" json:"status"`
 	IdempotencyKey                  string              `db:"idempotency_key" json:"idempotency_key"`
-	PricingStatus                   VaultPricingStatusT `db:"pricing_status" json:"pricing_status"`
 	EstimatedNAVRecordID            *int64              `db:"estimated_nav_record_id" json:"estimated_nav_record_id,omitempty"`
 	EstimatedNAVUSDCRaw             *string             `db:"estimated_nav_usdc_raw" json:"estimated_nav_usdc_raw,omitempty"`
 	EstimatedNAVVersion             *int64              `db:"estimated_nav_version" json:"estimated_nav_version,omitempty"`
@@ -196,8 +195,15 @@ type InvestmentRedemption struct {
 	DealingPriceUSDCRaw             *string             `db:"dealing_price_usdc_raw" json:"dealing_price_usdc_raw,omitempty"`
 	PricingSource                   *string             `db:"pricing_source" json:"pricing_source,omitempty"`
 	PricedByUserID                  *int                `db:"priced_by_user_id" json:"priced_by_user_id,omitempty"`
-	PricedRequestEffectID           *int64              `db:"priced_request_effect_id" json:"priced_request_effect_id,omitempty"`
 	PricedAt                        pgtype.Timestamptz  `db:"priced_at" json:"priced_at,omitempty"`
+	ApprovedAt                      pgtype.Timestamptz  `db:"approved_at" json:"approved_at,omitempty"`
+	ApprovedByUserID                *int                `db:"approved_by_user_id" json:"approved_by_user_id,omitempty"`
+	DeniedAt                        pgtype.Timestamptz  `db:"denied_at" json:"denied_at,omitempty"`
+	DeniedByUserID                  *int                `db:"denied_by_user_id" json:"denied_by_user_id,omitempty"`
+	DenialReason                    *string             `db:"denial_reason" json:"denial_reason,omitempty"`
+	DecisionIdempotencyKey          *string             `db:"decision_idempotency_key" json:"decision_idempotency_key,omitempty"`
+	DecisionPayloadHash             *string             `db:"decision_payload_hash" json:"decision_payload_hash,omitempty"`
+	ApprovalPreflightEvidenceID     *int64              `db:"approval_preflight_evidence_id" json:"approval_preflight_evidence_id,omitempty"`
 	LiquidityShortfallRaw           string              `db:"liquidity_shortfall_raw" json:"liquidity_shortfall_raw"`
 	AssetAmountRaw                  *string             `db:"asset_amount_raw" json:"asset_amount_raw,omitempty"`
 	ShareAmountRaw                  string              `db:"share_amount_raw" json:"share_amount_raw"`
@@ -229,7 +235,6 @@ func (model InvestmentRedemption) ToJSON() map[string]any {
 		"vault_request_effect_id":              model.VaultRequestEffectID,
 		"status":                               model.Status,
 		"idempotency_key":                      model.IdempotencyKey,
-		"pricing_status":                       model.PricingStatus,
 		"estimated_nav_record_id":              model.EstimatedNAVRecordID,
 		"estimated_nav_usdc_raw":               model.EstimatedNAVUSDCRaw,
 		"estimated_nav_version":                model.EstimatedNAVVersion,
@@ -247,8 +252,15 @@ func (model InvestmentRedemption) ToJSON() map[string]any {
 		"dealing_price_usdc_raw":               model.DealingPriceUSDCRaw,
 		"pricing_source":                       model.PricingSource,
 		"priced_by_user_id":                    model.PricedByUserID,
-		"priced_request_effect_id":             model.PricedRequestEffectID,
 		"priced_at":                            model.PricedAt,
+		"approved_at":                          model.ApprovedAt,
+		"approved_by_user_id":                  model.ApprovedByUserID,
+		"denied_at":                            model.DeniedAt,
+		"denied_by_user_id":                    model.DeniedByUserID,
+		"denial_reason":                        model.DenialReason,
+		"decision_idempotency_key":             model.DecisionIdempotencyKey,
+		"decision_payload_hash":                model.DecisionPayloadHash,
+		"approval_preflight_evidence_id":       model.ApprovalPreflightEvidenceID,
 		"liquidity_shortfall_raw":              model.LiquidityShortfallRaw,
 		"asset_amount_raw":                     model.AssetAmountRaw,
 		"share_amount_raw":                     model.ShareAmountRaw,
@@ -273,13 +285,16 @@ func (model InvestmentRedemption) Fields() []string {
 		"id", "offer_id", "profile_id", "investment_id", "vault_contract_id",
 		"request_controller_chain_account_id", "request_controller_address",
 		"vault_request_origin", "vault_request_effect_id", "status", "idempotency_key",
-		"pricing_status", "estimated_nav_record_id", "estimated_nav_usdc_raw",
+		"estimated_nav_record_id", "estimated_nav_usdc_raw",
 		"estimated_nav_version", "estimated_nav_valuation_block_number",
 		"estimated_nav_valuation_as_of", "estimated_asset_amount_raw", "estimated_at",
 		"dealing_cutoff_block_number", "dealing_cutoff_at", "nav_record_id",
 		"nav_usdc_raw", "nav_version", "nav_valuation_block_number",
-		"nav_valuation_as_of", "priced_at", "liquidity_shortfall_raw",
-		"dealing_price_usdc_raw", "pricing_source", "priced_by_user_id", "priced_request_effect_id",
+		"nav_valuation_as_of", "liquidity_shortfall_raw",
+		"dealing_price_usdc_raw", "pricing_source", "priced_by_user_id",
+		"priced_at", "approved_at", "approved_by_user_id", "denied_at", "denied_by_user_id",
+		"denial_reason", "decision_idempotency_key", "decision_payload_hash",
+		"approval_preflight_evidence_id",
 		"asset_amount_raw", "share_amount_raw", "pending_shares_raw",
 		"claimable_assets_raw", "claimable_shares_raw", "claimed_assets_raw",
 		"claimed_shares_raw", "transition_version", "request_locked_at",

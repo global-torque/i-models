@@ -78,6 +78,13 @@ type WalletOperation struct {
 	ExchangeRedemptionApprovalReference  string             `db:"exchange_redemption_approval_reference" json:"-"`
 	ExchangeRedemptionApprovedAt         pgtype.Timestamptz `db:"exchange_redemption_approved_at" json:"-"`
 	InvestmentRedemptionID               *int64             `db:"investment_redemption_id" json:"investment_redemption_id,omitempty"`
+	RedemptionFulfillmentGrantID         *int64             `db:"redemption_fulfillment_grant_id" json:"redemption_fulfillment_grant_id,omitempty"`
+	RedemptionFulfillmentGrantVersion    *int64             `db:"redemption_fulfillment_grant_version" json:"redemption_fulfillment_grant_version,omitempty"`
+	RedemptionFulfillmentGrantScopeHash  *string            `db:"redemption_fulfillment_grant_scope_hash" json:"redemption_fulfillment_grant_scope_hash,omitempty"`
+	RedemptionFulfillmentGrantEpoch      *int64             `db:"redemption_fulfillment_grant_authorization_epoch" json:"redemption_fulfillment_grant_authorization_epoch,omitempty"`
+	RedemptionFulfillmentGrantExpiresAt  pgtype.Timestamptz `db:"redemption_fulfillment_grant_expires_at" json:"redemption_fulfillment_grant_expires_at,omitempty"`
+	RedemptionFulfillmentEvidenceDigest  *string            `db:"redemption_fulfillment_evidence_digest" json:"redemption_fulfillment_evidence_digest,omitempty"`
+	RedemptionFulfillmentArmedAt         pgtype.Timestamptz `db:"redemption_fulfillment_armed_at" json:"redemption_fulfillment_armed_at,omitempty"`
 	FundNAVRecordID                      *int64             `db:"fund_nav_record_id" json:"fund_nav_record_id,omitempty"`
 	TransactionFromAddress               *string            `db:"transaction_from_address" json:"transaction_from_address,omitempty"`
 	TransactionToAddress                 *string            `db:"transaction_to_address" json:"transaction_to_address,omitempty"`
@@ -103,6 +110,10 @@ func (model WalletOperation) Fields() []string {
 		"block_timestamp", "confirmation_count", "confirmation_target", "reorg_count",
 		"last_seen_block", "removed_at", "created_at", "updated_at",
 		"investment_redemption_id", "fund_nav_record_id", "transaction_from_address",
+		"redemption_fulfillment_grant_id", "redemption_fulfillment_grant_version",
+		"redemption_fulfillment_grant_scope_hash", "redemption_fulfillment_grant_authorization_epoch",
+		"redemption_fulfillment_grant_expires_at", "redemption_fulfillment_evidence_digest",
+		"redemption_fulfillment_armed_at",
 		"transaction_to_address", "call_target_address", "contract_id",
 		"contract_function_selector", "call_data", "transaction_call_data", "receipt_block_hash",
 		"provider_prepared_call_raw", "wallet_session_reservation_consumed",
@@ -205,6 +216,20 @@ func (model WalletOperation) GetValueByTag(name string) any {
 		return model.RemovedAt
 	case "investment_redemption_id":
 		return model.InvestmentRedemptionID
+	case "redemption_fulfillment_grant_id":
+		return model.RedemptionFulfillmentGrantID
+	case "redemption_fulfillment_grant_version":
+		return model.RedemptionFulfillmentGrantVersion
+	case "redemption_fulfillment_grant_scope_hash":
+		return model.RedemptionFulfillmentGrantScopeHash
+	case "redemption_fulfillment_grant_authorization_epoch":
+		return model.RedemptionFulfillmentGrantEpoch
+	case "redemption_fulfillment_grant_expires_at":
+		return model.RedemptionFulfillmentGrantExpiresAt
+	case "redemption_fulfillment_evidence_digest":
+		return model.RedemptionFulfillmentEvidenceDigest
+	case "redemption_fulfillment_armed_at":
+		return model.RedemptionFulfillmentArmedAt
 	case "fund_nav_record_id":
 		return model.FundNAVRecordID
 	case "transaction_from_address":

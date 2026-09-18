@@ -1,0 +1,48 @@
+package evmredemptiongrantcommands
+
+import (
+	"github.com/global-torque/go-common/orm/v2/pgtype"
+	"github.com/google/uuid"
+)
+
+// RedemptionGrantCommand is the durable prepare/confirm/revoke saga record.
+type RedemptionGrantCommand struct {
+	ID                 int64              `db:"id" json:"id"`
+	OfferID            int                `db:"offer_id" json:"offer_id"`
+	CommandKind        KindT              `db:"command_kind" json:"command_kind"`
+	IdempotencyKey     string             `db:"idempotency_key" json:"idempotency_key"`
+	PayloadHash        string             `db:"payload_hash" json:"payload_hash"`
+	GrantID            *int64             `db:"grant_id" json:"grant_id,omitempty"`
+	ChallengeID        uuid.UUID          `db:"challenge_id" json:"challenge_id"`
+	OperationID        *int64             `db:"operation_id" json:"operation_id,omitempty"`
+	SignablePayload    any                `db:"signable_payload" json:"signable_payload"`
+	State              StateT             `db:"state" json:"state"`
+	Attempts           int                `db:"attempts" json:"attempts"`
+	LeaseOwner         *string            `db:"lease_owner" json:"lease_owner,omitempty"`
+	LeaseDeadline      pgtype.Timestamptz `db:"lease_deadline" json:"lease_deadline,omitempty"`
+	ChallengeExpiresAt pgtype.Timestamptz `db:"challenge_expires_at" json:"challenge_expires_at,omitempty"`
+	AuthorizationEpoch int64              `db:"authorization_epoch" json:"authorization_epoch"`
+	ProviderPlanHash   *string            `db:"provider_plan_hash" json:"provider_plan_hash,omitempty"`
+	CreatedAt          pgtype.Timestamptz `db:"created_at" json:"created_at"`
+	ConsumedAt         pgtype.Timestamptz `db:"consumed_at" json:"consumed_at,omitempty"`
+}
+
+func (model RedemptionGrantCommand) ToJSON() map[string]any {
+	return map[string]any{
+		"id": model.ID, "offer_id": model.OfferID, "command_kind": model.CommandKind,
+		"idempotency_key": model.IdempotencyKey, "payload_hash": model.PayloadHash,
+		"grant_id": model.GrantID, "challenge_id": model.ChallengeID,
+		"operation_id": model.OperationID, "signable_payload": model.SignablePayload,
+		"state": model.State, "attempts": model.Attempts, "lease_owner": model.LeaseOwner,
+		"lease_deadline": model.LeaseDeadline, "challenge_expires_at": model.ChallengeExpiresAt,
+		"authorization_epoch": model.AuthorizationEpoch, "provider_plan_hash": model.ProviderPlanHash,
+		"created_at": model.CreatedAt, "consumed_at": model.ConsumedAt,
+	}
+}
+
+func (model RedemptionGrantCommand) Fields() []string {
+	return []string{"id", "offer_id", "command_kind", "idempotency_key", "payload_hash", "grant_id", "challenge_id", "operation_id", "signable_payload", "state", "attempts", "lease_owner", "lease_deadline", "challenge_expires_at", "authorization_epoch", "provider_plan_hash", "created_at", "consumed_at"}
+}
+func (model RedemptionGrantCommand) Table() string { return "evm_redemption_grant_commands" }
+func (model RedemptionGrantCommand) GetID() any    { return model.ID }
+func (model *RedemptionGrantCommand) SetID(id any) { model.ID = id.(int64) }
