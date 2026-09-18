@@ -9,6 +9,8 @@ type VaultLiquidityQuarantine struct {
 	OfferID              int                `db:"offer_id" json:"offer_id"`
 	VaultContractID      int                `db:"vault_contract_id" json:"vault_contract_id"`
 	ShortfallAssetsRaw   string             `db:"shortfall_assets_raw" json:"shortfall_assets_raw"`
+	State                string             `db:"state" json:"state"`
+	ReasonCode           string             `db:"reason_code" json:"reason_code"`
 	RedemptionID         *int64             `db:"redemption_id" json:"redemption_id,omitempty"`
 	ControllerAddress    *string            `db:"controller_address" json:"controller_address,omitempty"`
 	AffectedEffectID     *int64             `db:"affected_effect_id" json:"affected_effect_id,omitempty"`
@@ -23,7 +25,7 @@ type VaultLiquidityQuarantine struct {
 func (model VaultLiquidityQuarantine) ToJSON() map[string]any {
 	return map[string]any{
 		"id": model.ID, "offer_id": model.OfferID, "vault_contract_id": model.VaultContractID,
-		"shortfall_assets_raw": model.ShortfallAssetsRaw, "redemption_id": model.RedemptionID,
+		"shortfall_assets_raw": model.ShortfallAssetsRaw, "state": model.State, "reason_code": model.ReasonCode, "redemption_id": model.RedemptionID,
 		"controller_address": model.ControllerAddress, "affected_effect_id": model.AffectedEffectID,
 		"finalized_block_number": model.FinalizedBlockNumber, "finalized_block_hash": model.FinalizedBlockHash,
 		"detected_at": model.DetectedAt, "recovery_evidence": model.RecoveryEvidence,
@@ -31,7 +33,7 @@ func (model VaultLiquidityQuarantine) ToJSON() map[string]any {
 	}
 }
 func (model VaultLiquidityQuarantine) Fields() []string {
-	return []string{"id", "offer_id", "vault_contract_id", "shortfall_assets_raw", "redemption_id", "controller_address", "affected_effect_id", "finalized_block_number", "finalized_block_hash", "detected_at", "recovery_evidence", "cleared_at", "created_at"}
+	return []string{"id", "offer_id", "vault_contract_id", "shortfall_assets_raw", "state", "reason_code", "redemption_id", "controller_address", "affected_effect_id", "finalized_block_number", "finalized_block_hash", "detected_at", "recovery_evidence", "cleared_at", "created_at"}
 }
 func (model VaultLiquidityQuarantine) Table() string { return "evm_vault_liquidity_quarantines" }
 func (model VaultLiquidityQuarantine) GetID() any    { return model.ID }

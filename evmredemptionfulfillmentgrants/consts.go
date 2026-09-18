@@ -6,18 +6,19 @@ import "github.com/pkg/errors"
 type StatusT string
 
 const (
-	StatusActive     StatusT = "active"
-	StatusRevoked    StatusT = "revoked"
-	StatusSuperseded StatusT = "superseded"
+	StatusActive            StatusT = "active"
+	StatusRevocationPending StatusT = "revocation_pending"
+	StatusRevoked           StatusT = "revoked"
+	StatusSuperseded        StatusT = "superseded"
 )
 
 func AllStatusT() []StatusT {
-	return []StatusT{StatusActive, StatusRevoked, StatusSuperseded}
+	return []StatusT{StatusActive, StatusRevocationPending, StatusRevoked, StatusSuperseded}
 }
 
 func (value StatusT) IsValid() error {
 	switch value {
-	case StatusActive, StatusRevoked, StatusSuperseded:
+	case StatusActive, StatusRevocationPending, StatusRevoked, StatusSuperseded:
 		return nil
 	default:
 		return errors.New("enum is not valid")

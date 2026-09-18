@@ -204,6 +204,8 @@ type InvestmentRedemption struct {
 	DecisionIdempotencyKey          *string             `db:"decision_idempotency_key" json:"decision_idempotency_key,omitempty"`
 	DecisionPayloadHash             *string             `db:"decision_payload_hash" json:"decision_payload_hash,omitempty"`
 	ApprovalPreflightEvidenceID     *int64              `db:"approval_preflight_evidence_id" json:"approval_preflight_evidence_id,omitempty"`
+	RequestEvidenceID               *int64              `db:"request_evidence_id" json:"request_evidence_id,omitempty"`
+	ProtocolState                   string              `db:"protocol_state" json:"protocol_state"`
 	LiquidityShortfallRaw           string              `db:"liquidity_shortfall_raw" json:"liquidity_shortfall_raw"`
 	AssetAmountRaw                  *string             `db:"asset_amount_raw" json:"asset_amount_raw,omitempty"`
 	ShareAmountRaw                  string              `db:"share_amount_raw" json:"share_amount_raw"`
@@ -261,6 +263,8 @@ func (model InvestmentRedemption) ToJSON() map[string]any {
 		"decision_idempotency_key":             model.DecisionIdempotencyKey,
 		"decision_payload_hash":                model.DecisionPayloadHash,
 		"approval_preflight_evidence_id":       model.ApprovalPreflightEvidenceID,
+		"request_evidence_id":                  model.RequestEvidenceID,
+		"protocol_state":                       model.ProtocolState,
 		"liquidity_shortfall_raw":              model.LiquidityShortfallRaw,
 		"asset_amount_raw":                     model.AssetAmountRaw,
 		"share_amount_raw":                     model.ShareAmountRaw,
@@ -295,6 +299,7 @@ func (model InvestmentRedemption) Fields() []string {
 		"priced_at", "approved_at", "approved_by_user_id", "denied_at", "denied_by_user_id",
 		"denial_reason", "decision_idempotency_key", "decision_payload_hash",
 		"approval_preflight_evidence_id",
+		"request_evidence_id", "protocol_state",
 		"asset_amount_raw", "share_amount_raw", "pending_shares_raw",
 		"claimable_assets_raw", "claimable_shares_raw", "claimed_assets_raw",
 		"claimed_shares_raw", "transition_version", "request_locked_at",
