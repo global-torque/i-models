@@ -8,9 +8,17 @@
     },
     {
       "name": "safe-integer-number-forms",
-      "document": {"integer": 9007199254740991, "negative_zero": -0},
+      "document": {"integer": 9007199254740991, "negative_zero": 0},
       "canonical": "{\"integer\":9007199254740991,\"negative_zero\":0}",
       "sha256": "b8f90ec72744f20ec35f0a3a7bb10fdd786b49ac799b5be1cbff38881f9f414b"
     }
+  ],
+  "invalidRaw": [
+    {"name": "duplicate-key", "raw": "{\"a\":1,\"a\":2}"},
+    {"name": "negative-zero", "raw": "-0"},
+    {"name": "fraction", "raw": "1.0"},
+    {"name": "exponent", "raw": "1e0"},
+    {"name": "unsafe-integer", "raw": "9007199254740992"},
+    {"name": "lone-surrogate", "raw": "\"\\ud800\""}
   ]
 }

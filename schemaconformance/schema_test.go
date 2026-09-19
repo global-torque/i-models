@@ -2,6 +2,7 @@ package schemaconformance_test
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"reflect"
@@ -41,6 +42,18 @@ import (
 	"github.com/webdevelop-pro/i-models/users"
 	"github.com/webdevelop-pro/i-models/wallets"
 )
+
+func TestStablecoinDigestFixtureIsSharedByteExact(t *testing.T) {
+	contents, err := os.ReadFile("stablecoin_redemption_digest_fixtures.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hash := fmt.Sprintf("%x", sha256.Sum256(contents))
+	const expected = "cfbc75bdc7d46eb86c583c570f66f586ee5bbed9fc470ca0aad52cfde8079150"
+	if hash != expected {
+		t.Fatalf("shared canonical fixture hash = %s, want %s", hash, expected)
+	}
+}
 
 type tableModel interface {
 	Fields() []string
