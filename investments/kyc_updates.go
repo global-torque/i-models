@@ -4,13 +4,19 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/global-torque/go-common/db/v2"
+	"github.com/jackc/pgx/v5"
 	"github.com/webdevelop-pro/i-models/profiles"
 )
 
+// InvestmentQueryExecutor binds the update to the caller's transaction.
+// The caller owns commit/rollback and appends any business facts before commit.
+type InvestmentQueryExecutor interface {
+	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
+}
+
 // MarkLegallyConfirmedForProfile moves confirmed investments to
 // legally_confirmed when KYC/accreditation requirements are satisfied.
-func MarkLegallyConfirmedForProfile(ctx context.Context, repo db.Repository, profile *profiles.Profile) ([]InvestmentInvestment, error) {
+func MarkLegallyConfirmedForProfile(ctx context.Context, repo InvestmentQueryExecutor, profile *profiles.Profile) ([]InvestmentInvestment, error) {
 	if profile == nil {
 		return nil, fmt.Errorf("profile is nil")
 	}

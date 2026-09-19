@@ -23,4 +23,7 @@ The similarly named `investments.InvestmentProfile` is a separate service
 projection of the same domain/table boundary. Choose the projection whose
 `Fields()` match the query being performed.
 
+See [holder flows](holder-flows.md) for the cross-repository KYC-pass event
+and token-holder boundary.
+
 See the [root guide](../README.md) for projection and transaction conventions.

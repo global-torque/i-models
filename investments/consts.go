@@ -320,18 +320,27 @@ func (e DepositPriceSourceT) String() string {
 type RedemptionStatusT string
 
 const (
-	RedemptionStatusOpen      RedemptionStatusT = "open"
-	RedemptionStatusCompleted RedemptionStatusT = "completed"
+	RedemptionStatusPending   RedemptionStatusT = "pending"
+	RedemptionStatusApproved  RedemptionStatusT = "approved"
+	RedemptionStatusDenied    RedemptionStatusT = "denied"
 	RedemptionStatusCancelled RedemptionStatusT = "cancelled"
+	RedemptionStatusCompleted RedemptionStatusT = "completed"
 )
 
 func AllRedemptionStatusT() []RedemptionStatusT {
-	return []RedemptionStatusT{RedemptionStatusOpen, RedemptionStatusCompleted, RedemptionStatusCancelled}
+	return []RedemptionStatusT{
+		RedemptionStatusPending,
+		RedemptionStatusApproved,
+		RedemptionStatusDenied,
+		RedemptionStatusCancelled,
+		RedemptionStatusCompleted,
+	}
 }
 
 func (e RedemptionStatusT) IsValid() error {
 	switch e {
-	case RedemptionStatusOpen, RedemptionStatusCompleted, RedemptionStatusCancelled:
+	case RedemptionStatusPending, RedemptionStatusApproved, RedemptionStatusDenied,
+		RedemptionStatusCancelled, RedemptionStatusCompleted:
 		return nil
 	default:
 		return errors.New("enum is not valid")

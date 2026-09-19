@@ -6,8 +6,9 @@ values, JSON projections, and a small generic CRUD facade. It does not own
 database migrations and it is not a standalone service.
 
 The module path is `github.com/webdevelop-pro/i-models`. The repository is
-currently built with Go 1.25 and the sibling services analyzed for this guide
-use release `v0.0.2`.
+currently built with Go 1.25.8. The `v0.1.0` release contains the canonical
+stablecoin-redemption status, approval/preflight, grant, operation-binding, and
+quarantine contracts used by the coordinated service rollout.
 
 ## Where it sits
 

@@ -123,7 +123,7 @@ func TestConditionalBusinessUpdatesRequireStatusAndUnlockedPath(t *testing.T) {
 					ctx,
 					repo,
 					23,
-					RedemptionStatusT("open"),
+					RedemptionStatusPending,
 					map[string]any{"updated_at": sq.Expr("clock_timestamp()")},
 					sq.Expr("cancelled_at IS NULL"),
 				)

@@ -164,10 +164,10 @@ func TestOfferProjectionAgainstPostgreSQL(t *testing.T) {
 	var investmentID int
 	err = tx.QueryRow(ctx, `
 		INSERT INTO investment_investments(
-			id, user_id, offer_id, profile_id, amount, price_per_share,
+			id, user_id, created_by, offer_id, profile_id, amount, price_per_share,
 			number_of_shares
 		) VALUES (
-			-700001, $1, $2, $3, 123.456789, 2.5, 49.3827156
+			-700001, $1, $1, $2, $3, 123.456789, 2.5, 49.3827156
 		)
 		RETURNING id
 	`, userID, offerID, profileID).Scan(&investmentID)
@@ -182,7 +182,8 @@ func TestOfferProjectionAgainstPostgreSQL(t *testing.T) {
 	if err != nil {
 		t.Fatalf("retrieve investment projection: %v", err)
 	}
-	if investment.Amount == nil ||
+	if investment.CreatedBy != userID ||
+		investment.Amount == nil ||
 		*investment.Amount != "123.456789000000000000" ||
 		investment.PricePerShare != "2.500000000000000000" ||
 		investment.NumberOfShares == nil ||
@@ -197,10 +198,10 @@ func TestOfferProjectionAgainstPostgreSQL(t *testing.T) {
 
 	_, err = tx.Exec(ctx, `
 		INSERT INTO investment_investments(
-			id, user_id, offer_id, profile_id, amount, price_per_share,
+			id, user_id, created_by, offer_id, profile_id, amount, price_per_share,
 			number_of_shares
 		) VALUES (
-			-700002, $1, $2, $3, 123.456789, 2.5, NULL
+			-700002, $1, $1, $2, $3, 123.456789, 2.5, NULL
 		)
 	`, userID, offerID, profileID)
 	if err != nil {
