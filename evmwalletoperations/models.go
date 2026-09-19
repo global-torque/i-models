@@ -78,6 +78,9 @@ type WalletOperation struct {
 	ExchangeRedemptionApprovalReference  string             `db:"exchange_redemption_approval_reference" json:"-"`
 	ExchangeRedemptionApprovedAt         pgtype.Timestamptz `db:"exchange_redemption_approved_at" json:"-"`
 	InvestmentRedemptionID               *int64             `db:"investment_redemption_id" json:"investment_redemption_id,omitempty"`
+	RequestEvidenceID                    *int64             `db:"request_evidence_id" json:"request_evidence_id,omitempty"`
+	RequestCalldataHash                  *string            `db:"request_calldata_hash" json:"-"`
+	CancellationFence                    *int64             `db:"cancellation_fence" json:"-"`
 	RedemptionFulfillmentGrantID         *int64             `db:"redemption_fulfillment_grant_id" json:"redemption_fulfillment_grant_id,omitempty"`
 	RedemptionFulfillmentGrantVersion    *int64             `db:"redemption_fulfillment_grant_version" json:"redemption_fulfillment_grant_version,omitempty"`
 	RedemptionFulfillmentGrantScopeHash  *string            `db:"redemption_fulfillment_grant_scope_hash" json:"redemption_fulfillment_grant_scope_hash,omitempty"`
@@ -109,7 +112,7 @@ func (model WalletOperation) Fields() []string {
 		"idempotency_key", "provider_event_id", "failure_reason", "block_number",
 		"block_timestamp", "confirmation_count", "confirmation_target", "reorg_count",
 		"last_seen_block", "removed_at", "created_at", "updated_at",
-		"investment_redemption_id", "fund_nav_record_id", "transaction_from_address",
+		"investment_redemption_id", "request_evidence_id", "request_calldata_hash", "cancellation_fence", "fund_nav_record_id", "transaction_from_address",
 		"redemption_fulfillment_grant_id", "redemption_fulfillment_grant_version",
 		"redemption_fulfillment_grant_scope_hash", "redemption_fulfillment_grant_authorization_epoch",
 		"redemption_fulfillment_grant_expires_at", "redemption_fulfillment_evidence_digest",
@@ -216,6 +219,12 @@ func (model WalletOperation) GetValueByTag(name string) any {
 		return model.RemovedAt
 	case "investment_redemption_id":
 		return model.InvestmentRedemptionID
+	case "request_evidence_id":
+		return model.RequestEvidenceID
+	case "request_calldata_hash":
+		return model.RequestCalldataHash
+	case "cancellation_fence":
+		return model.CancellationFence
 	case "redemption_fulfillment_grant_id":
 		return model.RedemptionFulfillmentGrantID
 	case "redemption_fulfillment_grant_version":
