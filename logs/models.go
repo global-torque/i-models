@@ -3,6 +3,7 @@ package logs
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -68,7 +69,9 @@ func LogHttpRequest(
 
 	contentID, err := GetContentID(ctx, db, objectLabel, objectModel)
 	if err != nil {
-		log.Error().Err(err).Msg("can't get content id from database")
+		if !errors.Is(err, context.Canceled) {
+			log.Error().Err(err).Msg("can't get content id from database")
+		}
 		return nil, err
 	}
 
@@ -140,6 +143,9 @@ func (model *LogLog) LogRequest(log logger.Logger, db db.Repository, objectID st
 		var (
 			err error
 		)
+		if req.Context().Err() != nil {
+			return
+		}
 
 		rawBody := []byte("{}")
 		if req.Body != nil {
@@ -176,14 +182,17 @@ func (model *LogLog) LogRequest(log logger.Logger, db db.Repository, objectID st
 			req,
 			rawBody,
 		)
+		if err != nil {
+			if !errors.Is(err, context.Canceled) {
+				log.Error().Err(err).Msg("can't save log in database")
+			}
+			return
+		}
+
 		model.ID = obj.ID
 
 		// TODO: Use the same format for incoming logs
 		log.Trace().Str("path", req.RequestURI).Str("service", serviceName.String()).Msg(MsgSendRequest)
-
-		if err != nil {
-			log.Error().Err(err).Msg("can't save log in database")
-		}
 	}
 }
 
