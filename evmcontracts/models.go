@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/global-torque/go-common/db/v2"
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/global-torque/go-common/orm/v2"
 	"github.com/global-torque/go-common/orm/v2/pgtype"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/webdevelop-pro/go-common/logger"
 )
 
 // Wallet is an object representing the database table.

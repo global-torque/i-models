@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/global-torque/go-common/orm/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/webdevelop-pro/go-common/logger"
 )
 
 type mergeRepository struct {

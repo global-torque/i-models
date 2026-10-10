@@ -10,10 +10,10 @@ import (
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/global-torque/go-common/context/v2/keys"
 	"github.com/global-torque/go-common/db/v2"
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/global-torque/go-common/orm/v2/pgtype"
-	"github.com/webdevelop-pro/go-common/context/keys"
-	"github.com/webdevelop-pro/go-common/logger"
 )
 
 type ContextKey rune

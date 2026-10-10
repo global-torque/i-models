@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/webdevelop-pro/go-common/logger"
 )
 
 type rowFunc func(dest ...any) error

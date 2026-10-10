@@ -7,10 +7,10 @@ import (
 	"testing"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/global-torque/go-common/orm/v2"
 	"github.com/global-torque/go-common/orm/v2/pgtype"
 	"github.com/jackc/pgx/v5"
-	"github.com/webdevelop-pro/go-common/logger"
 
 	"github.com/webdevelop-pro/i-models/evmwalletoperationeffects"
 	"github.com/webdevelop-pro/i-models/evmwalletoperations"
