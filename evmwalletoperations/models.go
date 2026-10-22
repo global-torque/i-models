@@ -97,6 +97,9 @@ type WalletOperation struct {
 	CallData                             *string            `db:"call_data" json:"-"`
 	TransactionCallData                  *string            `db:"transaction_call_data" json:"-"`
 	ReceiptBlockHash                     *string            `db:"receipt_block_hash" json:"receipt_block_hash,omitempty"`
+	ReceiptExecutionStatus               *string            `db:"receipt_execution_status" json:"receipt_execution_status,omitempty"`
+	ExpectedActionStatus                 *string            `db:"expected_action_status" json:"expected_action_status,omitempty"`
+	ExpectedActionFailureCode            *string            `db:"expected_action_failure_code" json:"expected_action_failure_code,omitempty"`
 	CreatedAt                            pgtype.Timestamptz `db:"created_at" json:"created_at"`
 	UpdatedAt                            pgtype.Timestamptz `db:"updated_at" json:"updated_at"`
 
@@ -119,6 +122,7 @@ func (model WalletOperation) Fields() []string {
 		"redemption_fulfillment_armed_at",
 		"transaction_to_address", "call_target_address", "contract_id",
 		"contract_function_selector", "call_data", "transaction_call_data", "receipt_block_hash",
+		"receipt_execution_status", "expected_action_status", "expected_action_failure_code",
 		"provider_prepared_call_raw", "wallet_session_reservation_consumed",
 	}
 }
@@ -257,6 +261,12 @@ func (model WalletOperation) GetValueByTag(name string) any {
 		return model.TransactionCallData
 	case "receipt_block_hash":
 		return model.ReceiptBlockHash
+	case "receipt_execution_status":
+		return model.ReceiptExecutionStatus
+	case "expected_action_status":
+		return model.ExpectedActionStatus
+	case "expected_action_failure_code":
+		return model.ExpectedActionFailureCode
 	case "provider_prepared_call_raw":
 		return model.ProviderPreparedCallRaw
 	case "wallet_session_reservation_consumed":
