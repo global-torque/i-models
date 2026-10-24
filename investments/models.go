@@ -165,7 +165,7 @@ func (model *InvestmentInvestment) SetID(id any) {
 	model.ID = id.(int)
 }
 
-// InvestmentRedemption is an exact-value projection of an asynchronous ERC-7540 redemption.
+// InvestmentRedemption is the compact projection of an asynchronous ERC-7540 redemption.
 type InvestmentRedemption struct {
 	ID                              int64               `db:"id" json:"id"`
 	OfferID                         int                 `db:"offer_id" json:"offer_id"`
@@ -178,35 +178,10 @@ type InvestmentRedemption struct {
 	VaultRequestEffectID            *int64              `db:"vault_request_effect_id" json:"vault_request_effect_id,omitempty"`
 	Status                          RedemptionStatusT   `db:"status" json:"status"`
 	IdempotencyKey                  string              `db:"idempotency_key" json:"idempotency_key"`
-	EstimatedNAVRecordID            *int64              `db:"estimated_nav_record_id" json:"estimated_nav_record_id,omitempty"`
-	EstimatedNAVUSDCRaw             *string             `db:"estimated_nav_usdc_raw" json:"estimated_nav_usdc_raw,omitempty"`
-	EstimatedNAVVersion             *int64              `db:"estimated_nav_version" json:"estimated_nav_version,omitempty"`
-	EstimatedNAVValuationBlock      *int64              `db:"estimated_nav_valuation_block_number" json:"estimated_nav_valuation_block_number,omitempty"`
-	EstimatedNAVValuationAsOf       pgtype.Timestamptz  `db:"estimated_nav_valuation_as_of" json:"estimated_nav_valuation_as_of,omitempty"`
-	EstimatedAssetAmountRaw         *string             `db:"estimated_asset_amount_raw" json:"estimated_asset_amount_raw,omitempty"`
-	EstimatedAt                     pgtype.Timestamptz  `db:"estimated_at" json:"estimated_at,omitempty"`
-	DealingCutoffBlockNumber        *int64              `db:"dealing_cutoff_block_number" json:"dealing_cutoff_block_number,omitempty"`
-	DealingCutoffAt                 pgtype.Timestamptz  `db:"dealing_cutoff_at" json:"dealing_cutoff_at,omitempty"`
-	NAVRecordID                     *int64              `db:"nav_record_id" json:"nav_record_id,omitempty"`
-	NAVUSDCRaw                      *string             `db:"nav_usdc_raw" json:"nav_usdc_raw,omitempty"`
-	NAVVersion                      *int64              `db:"nav_version" json:"nav_version,omitempty"`
-	NAVValuationBlockNumber         *int64              `db:"nav_valuation_block_number" json:"nav_valuation_block_number,omitempty"`
-	NAVValuationAsOf                pgtype.Timestamptz  `db:"nav_valuation_as_of" json:"nav_valuation_as_of,omitempty"`
 	DealingPriceUSDCRaw             *string             `db:"dealing_price_usdc_raw" json:"dealing_price_usdc_raw,omitempty"`
 	PricingSource                   *string             `db:"pricing_source" json:"pricing_source,omitempty"`
 	PricedByUserID                  *int                `db:"priced_by_user_id" json:"priced_by_user_id,omitempty"`
 	PricedAt                        pgtype.Timestamptz  `db:"priced_at" json:"priced_at,omitempty"`
-	ApprovedAt                      pgtype.Timestamptz  `db:"approved_at" json:"approved_at,omitempty"`
-	ApprovedByUserID                *int                `db:"approved_by_user_id" json:"approved_by_user_id,omitempty"`
-	DeniedAt                        pgtype.Timestamptz  `db:"denied_at" json:"denied_at,omitempty"`
-	DeniedByUserID                  *int                `db:"denied_by_user_id" json:"denied_by_user_id,omitempty"`
-	DenialReason                    *string             `db:"denial_reason" json:"denial_reason,omitempty"`
-	DecisionIdempotencyKey          *string             `db:"decision_idempotency_key" json:"decision_idempotency_key,omitempty"`
-	DecisionPayloadHash             *string             `db:"decision_payload_hash" json:"decision_payload_hash,omitempty"`
-	ApprovalPreflightEvidenceID     *int64              `db:"approval_preflight_evidence_id" json:"approval_preflight_evidence_id,omitempty"`
-	RequestEvidenceID               *int64              `db:"request_evidence_id" json:"request_evidence_id,omitempty"`
-	ProtocolState                   string              `db:"protocol_state" json:"protocol_state"`
-	LiquidityShortfallRaw           string              `db:"liquidity_shortfall_raw" json:"liquidity_shortfall_raw"`
 	AssetAmountRaw                  *string             `db:"asset_amount_raw" json:"asset_amount_raw,omitempty"`
 	ShareAmountRaw                  string              `db:"share_amount_raw" json:"share_amount_raw"`
 	PendingSharesRaw                string              `db:"pending_shares_raw" json:"pending_shares_raw"`
@@ -226,61 +201,36 @@ type InvestmentRedemption struct {
 
 func (model InvestmentRedemption) ToJSON() map[string]any {
 	return map[string]any{
-		"id":                                   model.ID,
-		"offer_id":                             model.OfferID,
-		"profile_id":                           model.ProfileID,
-		"investment_id":                        model.InvestmentID,
-		"vault_contract_id":                    model.VaultContractID,
-		"request_controller_chain_account_id":  model.RequestControllerChainAccountID,
-		"request_controller_address":           model.RequestControllerAddress,
-		"vault_request_origin":                 model.VaultRequestOrigin,
-		"vault_request_effect_id":              model.VaultRequestEffectID,
-		"status":                               model.Status,
-		"idempotency_key":                      model.IdempotencyKey,
-		"estimated_nav_record_id":              model.EstimatedNAVRecordID,
-		"estimated_nav_usdc_raw":               model.EstimatedNAVUSDCRaw,
-		"estimated_nav_version":                model.EstimatedNAVVersion,
-		"estimated_nav_valuation_block_number": model.EstimatedNAVValuationBlock,
-		"estimated_nav_valuation_as_of":        model.EstimatedNAVValuationAsOf,
-		"estimated_asset_amount_raw":           model.EstimatedAssetAmountRaw,
-		"estimated_at":                         model.EstimatedAt,
-		"dealing_cutoff_block_number":          model.DealingCutoffBlockNumber,
-		"dealing_cutoff_at":                    model.DealingCutoffAt,
-		"nav_record_id":                        model.NAVRecordID,
-		"nav_usdc_raw":                         model.NAVUSDCRaw,
-		"nav_version":                          model.NAVVersion,
-		"nav_valuation_block_number":           model.NAVValuationBlockNumber,
-		"nav_valuation_as_of":                  model.NAVValuationAsOf,
-		"dealing_price_usdc_raw":               model.DealingPriceUSDCRaw,
-		"pricing_source":                       model.PricingSource,
-		"priced_by_user_id":                    model.PricedByUserID,
-		"priced_at":                            model.PricedAt,
-		"approved_at":                          model.ApprovedAt,
-		"approved_by_user_id":                  model.ApprovedByUserID,
-		"denied_at":                            model.DeniedAt,
-		"denied_by_user_id":                    model.DeniedByUserID,
-		"denial_reason":                        model.DenialReason,
-		"decision_idempotency_key":             model.DecisionIdempotencyKey,
-		"decision_payload_hash":                model.DecisionPayloadHash,
-		"approval_preflight_evidence_id":       model.ApprovalPreflightEvidenceID,
-		"request_evidence_id":                  model.RequestEvidenceID,
-		"protocol_state":                       model.ProtocolState,
-		"liquidity_shortfall_raw":              model.LiquidityShortfallRaw,
-		"asset_amount_raw":                     model.AssetAmountRaw,
-		"share_amount_raw":                     model.ShareAmountRaw,
-		"pending_shares_raw":                   model.PendingSharesRaw,
-		"claimable_assets_raw":                 model.ClaimableAssetsRaw,
-		"claimable_shares_raw":                 model.ClaimableSharesRaw,
-		"claimed_assets_raw":                   model.ClaimedAssetsRaw,
-		"claimed_shares_raw":                   model.ClaimedSharesRaw,
-		"transition_version":                   model.TransitionVersion,
-		"request_locked_at":                    model.RequestLockedAt,
-		"requested_at":                         model.RequestedAt,
-		"claimable_at":                         model.ClaimableAt,
-		"claimed_at":                           model.ClaimedAt,
-		"cancelled_at":                         model.CancelledAt,
-		"created_at":                           model.CreatedAt,
-		"updated_at":                           model.UpdatedAt,
+		"id":                                  model.ID,
+		"offer_id":                            model.OfferID,
+		"profile_id":                          model.ProfileID,
+		"investment_id":                       model.InvestmentID,
+		"vault_contract_id":                   model.VaultContractID,
+		"request_controller_chain_account_id": model.RequestControllerChainAccountID,
+		"request_controller_address":          model.RequestControllerAddress,
+		"vault_request_origin":                model.VaultRequestOrigin,
+		"vault_request_effect_id":             model.VaultRequestEffectID,
+		"status":                              model.Status,
+		"idempotency_key":                     model.IdempotencyKey,
+		"dealing_price_usdc_raw":              model.DealingPriceUSDCRaw,
+		"pricing_source":                      model.PricingSource,
+		"priced_by_user_id":                   model.PricedByUserID,
+		"priced_at":                           model.PricedAt,
+		"asset_amount_raw":                    model.AssetAmountRaw,
+		"share_amount_raw":                    model.ShareAmountRaw,
+		"pending_shares_raw":                  model.PendingSharesRaw,
+		"claimable_assets_raw":                model.ClaimableAssetsRaw,
+		"claimable_shares_raw":                model.ClaimableSharesRaw,
+		"claimed_assets_raw":                  model.ClaimedAssetsRaw,
+		"claimed_shares_raw":                  model.ClaimedSharesRaw,
+		"transition_version":                  model.TransitionVersion,
+		"request_locked_at":                   model.RequestLockedAt,
+		"requested_at":                        model.RequestedAt,
+		"claimable_at":                        model.ClaimableAt,
+		"claimed_at":                          model.ClaimedAt,
+		"cancelled_at":                        model.CancelledAt,
+		"created_at":                          model.CreatedAt,
+		"updated_at":                          model.UpdatedAt,
 	}
 }
 
@@ -289,17 +239,7 @@ func (model InvestmentRedemption) Fields() []string {
 		"id", "offer_id", "profile_id", "investment_id", "vault_contract_id",
 		"request_controller_chain_account_id", "request_controller_address",
 		"vault_request_origin", "vault_request_effect_id", "status", "idempotency_key",
-		"estimated_nav_record_id", "estimated_nav_usdc_raw",
-		"estimated_nav_version", "estimated_nav_valuation_block_number",
-		"estimated_nav_valuation_as_of", "estimated_asset_amount_raw", "estimated_at",
-		"dealing_cutoff_block_number", "dealing_cutoff_at", "nav_record_id",
-		"nav_usdc_raw", "nav_version", "nav_valuation_block_number",
-		"nav_valuation_as_of", "liquidity_shortfall_raw",
-		"dealing_price_usdc_raw", "pricing_source", "priced_by_user_id",
-		"priced_at", "approved_at", "approved_by_user_id", "denied_at", "denied_by_user_id",
-		"denial_reason", "decision_idempotency_key", "decision_payload_hash",
-		"approval_preflight_evidence_id",
-		"request_evidence_id", "protocol_state",
+		"dealing_price_usdc_raw", "pricing_source", "priced_by_user_id", "priced_at",
 		"asset_amount_raw", "share_amount_raw", "pending_shares_raw",
 		"claimable_assets_raw", "claimable_shares_raw", "claimed_assets_raw",
 		"claimed_shares_raw", "transition_version", "request_locked_at",
