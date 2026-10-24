@@ -9,37 +9,130 @@ import (
 func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *testing.T) {
 	t.Parallel()
 
-	model := OfferOffer{
-		RegType:           OfferRegTypesT{OfferRegTypeTUSRegS, OfferRegTypeTUSRegD506B},
-		OfferJurisdiction: OfferJurisdictionsT{OfferJurisdictionTCH, OfferJurisdictionTUS},
-		OfferingMode:      OfferingModesT{OfferingModeTOffshore, OfferingModeTPrivatePlacement},
+	tests := []struct {
+		name       string
+		model      OfferOffer
+		jsonField  string
+		jsonValues []any
+		scanJSON   string
+		scan       func([]byte) (any, error)
+		value      func() (any, error)
+		want       any
+		wantValue  string
+	}{
+		{
+			name: "reg_type",
+			model: OfferOffer{
+				RegType: OfferRegTypesT{
+					OfferRegTypeTUSRegS,
+					OfferRegTypeTUSRegD506B,
+				},
+			},
+			jsonField:  "reg_type",
+			jsonValues: []any{"US_REG_S", "US_REG_D_506B"},
+			scanJSON:   `["US_REG_S","US_REG_D_506B"]`,
+			scan: func(raw []byte) (any, error) {
+				var values OfferRegTypesT
+				if err := values.Scan(raw); err != nil {
+					return nil, err
+				}
+				return values, nil
+			},
+			value: func() (any, error) {
+				return OfferRegTypesT{
+					OfferRegTypeTUSRegS,
+					OfferRegTypeTUSRegD506B,
+				}.Value()
+			},
+			want:      OfferRegTypesT{OfferRegTypeTUSRegS, OfferRegTypeTUSRegD506B},
+			wantValue: `["US_REG_S","US_REG_D_506B"]`,
+		},
+		{
+			name: "offer_jurisdiction",
+			model: OfferOffer{
+				OfferJurisdiction: OfferJurisdictionsT{
+					OfferJurisdictionTCH,
+					OfferJurisdictionTUS,
+				},
+			},
+			jsonField:  "offer_jurisdiction",
+			jsonValues: []any{"CH", "US"},
+			scanJSON:   `["CH","US"]`,
+			scan: func(raw []byte) (any, error) {
+				var values OfferJurisdictionsT
+				if err := values.Scan(raw); err != nil {
+					return nil, err
+				}
+				return values, nil
+			},
+			value: func() (any, error) {
+				return OfferJurisdictionsT{
+					OfferJurisdictionTCH,
+					OfferJurisdictionTUS,
+				}.Value()
+			},
+			want:      OfferJurisdictionsT{OfferJurisdictionTCH, OfferJurisdictionTUS},
+			wantValue: `["CH","US"]`,
+		},
+		{
+			name: "offering_mode",
+			model: OfferOffer{
+				OfferingMode: OfferingModesT{
+					OfferingModeTOffshore,
+					OfferingModeTPrivatePlacement,
+				},
+			},
+			jsonField:  "offering_mode",
+			jsonValues: []any{"offshore", "private_placement"},
+			scanJSON:   `["offshore","private_placement"]`,
+			scan: func(raw []byte) (any, error) {
+				var values OfferingModesT
+				if err := values.Scan(raw); err != nil {
+					return nil, err
+				}
+				return values, nil
+			},
+			value: func() (any, error) {
+				return OfferingModesT{
+					OfferingModeTOffshore,
+					OfferingModeTPrivatePlacement,
+				}.Value()
+			},
+			want:      OfferingModesT{OfferingModeTOffshore, OfferingModeTPrivatePlacement},
+			wantValue: `["offshore","private_placement"]`,
+		},
 	}
 
-	encoded, err := json.Marshal(model)
-	if err != nil {
-		t.Fatalf("marshal offer: %v", err)
-	}
-	var payload map[string]any
-	if err := json.Unmarshal(encoded, &payload); err != nil {
-		t.Fatalf("unmarshal offer JSON: %v", err)
-	}
-	if got, want := payload["reg_type"], []any{"US_REG_S", "US_REG_D_506B"}; !reflect.DeepEqual(got, want) {
-		t.Fatalf("reg_type order changed: got %#v, want %#v", got, want)
-	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			encoded, err := json.Marshal(test.model)
+			if err != nil {
+				t.Fatalf("marshal offer: %v", err)
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(encoded, &payload); err != nil {
+				t.Fatalf("unmarshal offer JSON: %v", err)
+			}
+			if got := payload[test.jsonField]; !reflect.DeepEqual(got, test.jsonValues) {
+				t.Fatalf("JSON order changed: got %#v, want %#v", got, test.jsonValues)
+			}
 
-	var regTypes OfferRegTypesT
-	if err := regTypes.Scan([]byte(`["US_REG_S","US_REG_D_506B"]`)); err != nil {
-		t.Fatalf("scan reg_type: %v", err)
-	}
-	if !reflect.DeepEqual(regTypes, model.RegType) {
-		t.Fatalf("scanned reg_type changed: got %#v, want %#v", regTypes, model.RegType)
-	}
-	value, err := model.OfferJurisdiction.Value()
-	if err != nil {
-		t.Fatalf("value offer_jurisdiction: %v", err)
-	}
-	if got, want := string(value.([]byte)), `["CH","US"]`; got != want {
-		t.Fatalf("offer_jurisdiction order changed: got %q, want %q", got, want)
+			scanned, err := test.scan([]byte(test.scanJSON))
+			if err != nil {
+				t.Fatalf("scan %s: %v", test.name, err)
+			}
+			if !reflect.DeepEqual(scanned, test.want) {
+				t.Fatalf("scan order changed: got %#v, want %#v", scanned, test.want)
+			}
+
+			value, err := test.value()
+			if err != nil {
+				t.Fatalf("value %s: %v", test.name, err)
+			}
+			if got := string(value.([]byte)); got != test.wantValue {
+				t.Fatalf("database value order changed: got %q, want %q", got, test.wantValue)
+			}
+		})
 	}
 }
 
