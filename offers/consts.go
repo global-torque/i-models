@@ -360,17 +360,19 @@ type OfferRegTypesT []OfferRegTypeT
 type OfferJurisdictionsT []OfferJurisdictionT
 type OfferingModesT []OfferingModeT
 
+var errScanOfferStringSlice = errors.New("scan offer string slice")
+
 func scanOfferStringSlice(value any) ([]string, error) {
 	var raw []byte
 	switch val := value.(type) {
 	case nil:
-		return nil, errors.New("scan offer string slice: SQL value is NULL")
+		return nil, fmt.Errorf("%w: SQL value is NULL", errScanOfferStringSlice)
 	case []byte:
 		raw = val
 	case string:
 		raw = []byte(val)
 	default:
-		return nil, fmt.Errorf("scan offer string slice: cannot scan %T into JSON string slice", value)
+		return nil, fmt.Errorf("%w: cannot scan %T into JSON string slice", errScanOfferStringSlice, value)
 	}
 
 	var values []string
@@ -378,20 +380,21 @@ func scanOfferStringSlice(value any) ([]string, error) {
 		return nil, fmt.Errorf("scan offer string slice: decode JSON string slice: %w", err)
 	}
 	if values == nil {
-		return nil, errors.New("scan offer string slice: JSON value must be a non-null, non-empty array")
+		return nil, fmt.Errorf("%w: JSON value must be a non-null, non-empty array", errScanOfferStringSlice)
 	}
 	if len(values) == 0 {
-		return nil, errors.New("scan offer string slice: JSON array must not be empty")
+		return nil, fmt.Errorf("%w: JSON array must not be empty", errScanOfferStringSlice)
 	}
 
 	seen := make(map[string]int, len(values))
 	for index, value := range values {
 		if strings.TrimSpace(value) == "" {
-			return nil, fmt.Errorf("scan offer string slice: element %d must not be blank", index)
+			return nil, fmt.Errorf("%w: element %d must not be blank", errScanOfferStringSlice, index)
 		}
 		if previous, ok := seen[value]; ok {
 			return nil, fmt.Errorf(
-				"scan offer string slice: element %d duplicates element %d (%q)",
+				"%w: element %d duplicates element %d (%q)",
+				errScanOfferStringSlice,
 				index,
 				previous,
 				value,
