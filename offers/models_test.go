@@ -3,10 +3,11 @@ package offers
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *testing.T) {
+func TestOfferRegulatoryArraysPreserveOrderThroughJSON(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -14,11 +15,6 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 		model      OfferOffer
 		jsonField  string
 		jsonValues []any
-		scanJSON   string
-		scan       func([]byte) (any, error)
-		value      func() (any, error)
-		want       any
-		wantValue  string
 	}{
 		{
 			name: "reg_type",
@@ -30,22 +26,6 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 			},
 			jsonField:  "reg_type",
 			jsonValues: []any{"US_REG_S", "US_REG_D_506B"},
-			scanJSON:   `["US_REG_S","US_REG_D_506B"]`,
-			scan: func(raw []byte) (any, error) {
-				var values OfferRegTypesT
-				if err := values.Scan(raw); err != nil {
-					return nil, err
-				}
-				return values, nil
-			},
-			value: func() (any, error) {
-				return OfferRegTypesT{
-					OfferRegTypeTUSRegS,
-					OfferRegTypeTUSRegD506B,
-				}.Value()
-			},
-			want:      OfferRegTypesT{OfferRegTypeTUSRegS, OfferRegTypeTUSRegD506B},
-			wantValue: `["US_REG_S","US_REG_D_506B"]`,
 		},
 		{
 			name: "offer_jurisdiction",
@@ -57,22 +37,6 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 			},
 			jsonField:  "offer_jurisdiction",
 			jsonValues: []any{"CH", "US"},
-			scanJSON:   `["CH","US"]`,
-			scan: func(raw []byte) (any, error) {
-				var values OfferJurisdictionsT
-				if err := values.Scan(raw); err != nil {
-					return nil, err
-				}
-				return values, nil
-			},
-			value: func() (any, error) {
-				return OfferJurisdictionsT{
-					OfferJurisdictionTCH,
-					OfferJurisdictionTUS,
-				}.Value()
-			},
-			want:      OfferJurisdictionsT{OfferJurisdictionTCH, OfferJurisdictionTUS},
-			wantValue: `["CH","US"]`,
 		},
 		{
 			name: "offering_mode",
@@ -84,22 +48,6 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 			},
 			jsonField:  "offering_mode",
 			jsonValues: []any{"offshore", "private_placement"},
-			scanJSON:   `["offshore","private_placement"]`,
-			scan: func(raw []byte) (any, error) {
-				var values OfferingModesT
-				if err := values.Scan(raw); err != nil {
-					return nil, err
-				}
-				return values, nil
-			},
-			value: func() (any, error) {
-				return OfferingModesT{
-					OfferingModeTOffshore,
-					OfferingModeTPrivatePlacement,
-				}.Value()
-			},
-			want:      OfferingModesT{OfferingModeTOffshore, OfferingModeTPrivatePlacement},
-			wantValue: `["offshore","private_placement"]`,
 		},
 	}
 
@@ -116,104 +64,158 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 			if got := payload[test.jsonField]; !reflect.DeepEqual(got, test.jsonValues) {
 				t.Fatalf("JSON order changed: got %#v, want %#v", got, test.jsonValues)
 			}
-
-			scanned, err := test.scan([]byte(test.scanJSON))
-			if err != nil {
-				t.Fatalf("scan %s: %v", test.name, err)
-			}
-			if !reflect.DeepEqual(scanned, test.want) {
-				t.Fatalf("scan order changed: got %#v, want %#v", scanned, test.want)
-			}
-
-			value, err := test.value()
-			if err != nil {
-				t.Fatalf("value %s: %v", test.name, err)
-			}
-			if got := string(value.([]byte)); got != test.wantValue {
-				t.Fatalf("database value order changed: got %q, want %q", got, test.wantValue)
-			}
 		})
 	}
 }
 
-func TestOfferRegTypesScanValidation(t *testing.T) {
-	t.Parallel()
+type offerRegulatoryArrayAdapter struct {
+	name  string
+	field string
+	scan  func(any) ([]string, error)
+	value func([]string) (any, error)
+}
 
-	tests := []struct {
-		name    string
-		input   any
-		want    []string
-		wantErr bool
-	}{
-		{
-			name:  "unknown strings preserve order",
-			input: []byte(`["future_route","legacy value"]`),
-			want:  []string{"future_route", "legacy value"},
-		},
-		{name: "SQL nil", input: nil, wantErr: true},
-		{name: "JSON null", input: []byte(`null`), wantErr: true},
-		{name: "empty array", input: []byte(`[]`), wantErr: true},
-		{name: "blank string", input: []byte(`[""]`), wantErr: true},
-		{name: "whitespace string", input: []byte(`[" \t"]`), wantErr: true},
-		{name: "duplicate string", input: []byte(`["future_route","future_route"]`), wantErr: true},
-		{name: "scalar", input: []byte(`"future_route"`), wantErr: true},
-		{name: "object", input: []byte(`{"value":"future_route"}`), wantErr: true},
-		{name: "non-string element", input: []byte(`[42]`), wantErr: true},
+func offerRegulatoryStrings[T ~string](values []T) []string {
+	strings := make([]string, len(values))
+	for index, value := range values {
+		strings[index] = string(value)
+	}
+	return strings
+}
+
+func offerRegulatoryValues[T ~string](values []string) []T {
+	if values == nil {
+		return nil
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-			var values OfferRegTypesT
-			err := values.Scan(test.input)
-			if test.wantErr {
-				if err == nil {
-					t.Fatal("OfferRegTypesT.Scan unexpectedly succeeded")
+	result := make([]T, len(values))
+	for index, value := range values {
+		result[index] = T(value)
+	}
+	return result
+}
+
+func offerRegulatoryArrayAdapters() []offerRegulatoryArrayAdapter {
+	return []offerRegulatoryArrayAdapter{
+		{
+			name: "reg_type", field: "offer regulatory types",
+			scan: func(value any) ([]string, error) {
+				var values OfferRegTypesT
+				if err := values.Scan(value); err != nil {
+					return nil, err
 				}
-				return
-			}
-			if err != nil {
-				t.Fatalf("OfferRegTypesT.Scan failed: %v", err)
-			}
-			got := make([]string, len(values))
-			for index, value := range values {
-				got[index] = string(value)
-			}
-			if !reflect.DeepEqual(got, test.want) {
-				t.Fatalf("OfferRegTypesT.Scan changed values: got %#v, want %#v", got, test.want)
-			}
-		})
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferRegTypesT(offerRegulatoryValues[OfferRegTypeT](values)).Value()
+			},
+		},
+		{
+			name: "offer_jurisdiction", field: "offer jurisdictions",
+			scan: func(value any) ([]string, error) {
+				var values OfferJurisdictionsT
+				if err := values.Scan(value); err != nil {
+					return nil, err
+				}
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferJurisdictionsT(offerRegulatoryValues[OfferJurisdictionT](values)).Value()
+			},
+		},
+		{
+			name: "offering_mode", field: "offering modes",
+			scan: func(value any) ([]string, error) {
+				var values OfferingModesT
+				if err := values.Scan(value); err != nil {
+					return nil, err
+				}
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferingModesT(offerRegulatoryValues[OfferingModeT](values)).Value()
+			},
+		},
 	}
 }
 
-func TestOfferRegulatoryArrayScansRejectMalformedValues(t *testing.T) {
+func TestOfferRegulatoryArraysValidateStructure(t *testing.T) {
 	t.Parallel()
 
-	tests := []struct {
-		name string
-		scan func(any) error
+	validValues := []string{" future_route ", "legacy value"}
+	validJSON := `[" future_route ","legacy value"]`
+	scanInvalid := []struct {
+		name  string
+		input any
 	}{
-		{
-			name: "offer jurisdiction",
-			scan: func(value any) error {
-				var values OfferJurisdictionsT
-				return values.Scan(value)
-			},
-		},
-		{
-			name: "offering mode",
-			scan: func(value any) error {
-				var values OfferingModesT
-				return values.Scan(value)
-			},
-		},
+		{name: "SQL nil", input: nil},
+		{name: "unsupported SQL type", input: 42},
+		{name: "invalid JSON", input: []byte(`not-json`)},
+		{name: "JSON null", input: []byte(`null`)},
+		{name: "empty array", input: []byte(`[]`)},
+		{name: "blank string", input: []byte(`[""]`)},
+		{name: "whitespace string", input: []byte(`[" \t"]`)},
+		{name: "duplicate string", input: []byte(`["future_route","future_route"]`)},
+		{name: "scalar", input: []byte(`"future_route"`)},
+		{name: "object", input: []byte(`{"value":"future_route"}`)},
+		{name: "non-string element", input: []byte(`[42]`)},
+	}
+	valueInvalid := []struct {
+		name  string
+		input []string
+	}{
+		{name: "nil", input: nil},
+		{name: "empty array", input: []string{}},
+		{name: "blank string", input: []string{""}},
+		{name: "whitespace string", input: []string{" \t"}},
+		{name: "duplicate string", input: []string{"future_route", "future_route"}},
 	}
 
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			t.Parallel()
-			if err := test.scan([]byte(`[42]`)); err == nil {
-				t.Fatal("malformed regulatory array unexpectedly scanned")
+	for _, adapter := range offerRegulatoryArrayAdapters() {
+		adapter := adapter
+		t.Run(adapter.name, func(t *testing.T) {
+			t.Run("valid ordered unknown strings", func(t *testing.T) {
+				scanned, err := adapter.scan([]byte(validJSON))
+				if err != nil {
+					t.Fatalf("scan: %v", err)
+				}
+				if !reflect.DeepEqual(scanned, validValues) {
+					t.Fatalf("scan changed values: got %#v, want %#v", scanned, validValues)
+				}
+
+				encoded, err := adapter.value(validValues)
+				if err != nil {
+					t.Fatalf("value: %v", err)
+				}
+				got, ok := encoded.([]byte)
+				if !ok {
+					t.Fatalf("value returned %T, want []byte", encoded)
+				}
+				if string(got) != validJSON {
+					t.Fatalf("value changed order or text: got %q, want %q", got, validJSON)
+				}
+			})
+
+			for _, test := range scanInvalid {
+				test := test
+				t.Run("scan/"+test.name, func(t *testing.T) {
+					if _, err := adapter.scan(test.input); err == nil {
+						t.Fatal("scan unexpectedly succeeded")
+					}
+				})
+			}
+
+			for _, test := range valueInvalid {
+				test := test
+				t.Run("value/"+test.name, func(t *testing.T) {
+					_, err := adapter.value(test.input)
+					if err == nil {
+						t.Fatal("value unexpectedly succeeded")
+					}
+					if !strings.Contains(err.Error(), adapter.field) {
+						t.Fatalf("value error lost field context: %v", err)
+					}
+				})
 			}
 		})
 	}
