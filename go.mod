@@ -4,20 +4,17 @@ go 1.25.8
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/global-torque/go-common/context/v2 v2.0.1
 	github.com/global-torque/go-common/logger/v2 v2.0.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
 	github.com/pkg/errors v0.9.1
-	github.com/webdevelop-pro/go-common/context v1.0.19-0.20260607130039-ad7c41678597
-	github.com/webdevelop-pro/go-common/logger v1.0.22-0.20260607130039-ad7c41678597
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/global-torque/go-common/configurator/v2 v2.0.1 // indirect
-	github.com/global-torque/go-common/context/v2 v2.0.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/webdevelop-pro/go-common/configurator v1.0.20 // indirect
 )
 
 require (

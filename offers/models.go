@@ -63,10 +63,10 @@ type OfferOffer struct {
 	SiteID                   *int                      `db:"site_id" json:"site_id,omitempty" yaml:"site_id,omitempty"`
 	DataRoomGroupID          *int                      `db:"data_room_group_id" json:"data_room_group_id,omitempty" yaml:"data_room_group_id,omitempty"`
 	FundStructure            FundStructureT            `db:"fund_structure" json:"fund_structure" yaml:"fund_structure"`
-	RegType                  OfferRegTypeT             `db:"reg_type" json:"reg_type" yaml:"reg_type"`
-	OfferJurisdiction        OfferJurisdictionT        `db:"offer_jurisdiction" json:"offer_jurisdiction" yaml:"offer_jurisdiction"`
+	RegType                  OfferRegTypesT            `db:"reg_type" json:"reg_type" yaml:"reg_type"`
+	OfferJurisdiction        OfferJurisdictionsT       `db:"offer_jurisdiction" json:"offer_jurisdiction" yaml:"offer_jurisdiction"`
 	InstrumentClassification InstrumentClassificationT `db:"instrument_classification" json:"instrument_classification" yaml:"instrument_classification"`
-	OfferingMode             OfferingModeT             `db:"offering_mode" json:"offering_mode" yaml:"offering_mode"`
+	OfferingMode             OfferingModesT            `db:"offering_mode" json:"offering_mode" yaml:"offering_mode"`
 	OfferingCurrency         string                    `db:"offering_currency" json:"offering_currency" yaml:"offering_currency"`
 	InvestorEligibility      any                       `db:"investor_eligibility" json:"investor_eligibility,omitempty" yaml:"investor_eligibility,omitempty"`
 	MarketedJurisdictions    any                       `db:"marketed_jurisdictions" json:"marketed_jurisdictions,omitempty" yaml:"marketed_jurisdictions,omitempty"`

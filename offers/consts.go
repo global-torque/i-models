@@ -1,6 +1,7 @@
 package offers
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -314,6 +315,7 @@ const (
 	OfferRegTypeTUSRegD506B              OfferRegTypeT = "US_REG_D_506B"
 	OfferRegTypeTUSRegD506C              OfferRegTypeT = "US_REG_D_506C"
 	OfferRegTypeTUSRegCF                 OfferRegTypeT = "US_REG_CF"
+	OfferRegTypeTUSRegS                  OfferRegTypeT = "US_REG_S"
 	OfferRegTypeTEUECSPCrowdfunding      OfferRegTypeT = "EU_ECSP_CROWDFUNDING"
 	OfferRegTypeTEUMiCAOtherCryptoAsset  OfferRegTypeT = "EU_MICA_OTHER_CRYPTO_ASSET"
 	OfferRegTypeTLUProspectusExempt      OfferRegTypeT = "LU_PROSPECTUS_EXEMPT"
@@ -331,6 +333,7 @@ func AllOfferRegTypeT() []OfferRegTypeT {
 		OfferRegTypeTUSRegD506B,
 		OfferRegTypeTUSRegD506C,
 		OfferRegTypeTUSRegCF,
+		OfferRegTypeTUSRegS,
 		OfferRegTypeTEUECSPCrowdfunding,
 		OfferRegTypeTEUMiCAOtherCryptoAsset,
 		OfferRegTypeTLUProspectusExempt,
@@ -345,11 +348,95 @@ func AllOfferRegTypeT() []OfferRegTypeT {
 
 func (e OfferRegTypeT) IsValid() error {
 	switch e {
-	case OfferRegTypeTUSRegAPlus, OfferRegTypeTUSRegD506B, OfferRegTypeTUSRegD506C, OfferRegTypeTUSRegCF, OfferRegTypeTEUECSPCrowdfunding, OfferRegTypeTEUMiCAOtherCryptoAsset, OfferRegTypeTLUProspectusExempt, OfferRegTypeTDEEWPGCryptoSecurity, OfferRegTypeTCHFinSAPrivatePlacement, OfferRegTypeTKYPrivateFund, OfferRegTypeTKYVASPTokenIssuance, OfferRegTypeTKYTokenisedMutualFund, OfferRegTypeTKYSIBASecurityToken:
+	case OfferRegTypeTUSRegAPlus, OfferRegTypeTUSRegD506B, OfferRegTypeTUSRegD506C, OfferRegTypeTUSRegCF, OfferRegTypeTUSRegS, OfferRegTypeTEUECSPCrowdfunding, OfferRegTypeTEUMiCAOtherCryptoAsset, OfferRegTypeTLUProspectusExempt, OfferRegTypeTDEEWPGCryptoSecurity, OfferRegTypeTCHFinSAPrivatePlacement, OfferRegTypeTKYPrivateFund, OfferRegTypeTKYVASPTokenIssuance, OfferRegTypeTKYTokenisedMutualFund, OfferRegTypeTKYSIBASecurityToken:
 		return nil
 	default:
 		return errors.New("enum is not valid")
 	}
+}
+
+type OfferRegTypesT []OfferRegTypeT
+type OfferJurisdictionsT []OfferJurisdictionT
+type OfferingModesT []OfferingModeT
+
+func scanOfferStringSlice(value any) ([]string, error) {
+	var raw []byte
+	switch val := value.(type) {
+	case nil:
+		return nil, nil
+	case []byte:
+		raw = val
+	case string:
+		raw = []byte(val)
+	default:
+		return nil, fmt.Errorf("cannot scan %T into JSON string slice", value)
+	}
+
+	var values []string
+	if err := json.Unmarshal(raw, &values); err != nil {
+		return nil, fmt.Errorf("decode JSON string slice: %w", err)
+	}
+	return values, nil
+}
+
+func (values *OfferRegTypesT) Scan(value any) error {
+	strings, err := scanOfferStringSlice(value)
+	if err != nil {
+		return err
+	}
+	*values = make(OfferRegTypesT, len(strings))
+	for index, value := range strings {
+		(*values)[index] = OfferRegTypeT(value)
+	}
+	return nil
+}
+
+func (values OfferRegTypesT) Value() (driver.Value, error) {
+	encoded, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("encode offer regulatory types: %w", err)
+	}
+	return encoded, nil
+}
+
+func (values *OfferJurisdictionsT) Scan(value any) error {
+	strings, err := scanOfferStringSlice(value)
+	if err != nil {
+		return err
+	}
+	*values = make(OfferJurisdictionsT, len(strings))
+	for index, value := range strings {
+		(*values)[index] = OfferJurisdictionT(value)
+	}
+	return nil
+}
+
+func (values OfferJurisdictionsT) Value() (driver.Value, error) {
+	encoded, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("encode offer jurisdictions: %w", err)
+	}
+	return encoded, nil
+}
+
+func (values *OfferingModesT) Scan(value any) error {
+	strings, err := scanOfferStringSlice(value)
+	if err != nil {
+		return err
+	}
+	*values = make(OfferingModesT, len(strings))
+	for index, value := range strings {
+		(*values)[index] = OfferingModeT(value)
+	}
+	return nil
+}
+
+func (values OfferingModesT) Value() (driver.Value, error) {
+	encoded, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("encode offering modes: %w", err)
+	}
+	return encoded, nil
 }
 
 type OfferJurisdictionT string

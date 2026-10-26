@@ -7,10 +7,10 @@ import (
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/global-torque/go-common/db/v2"
+	"github.com/global-torque/go-common/logger/v2"
 	"github.com/global-torque/go-common/orm/v2"
 	"github.com/global-torque/go-common/orm/v2/pgtype"
 	"github.com/pkg/errors"
-	"github.com/webdevelop-pro/go-common/logger"
 	"github.com/webdevelop-pro/i-models/historylogs"
 	"github.com/webdevelop-pro/i-models/logs"
 	"github.com/webdevelop-pro/i-models/notifications"
