@@ -163,6 +163,7 @@ func TestOfferRegTypesScanValidation(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			var values OfferRegTypesT
 			err := values.Scan(test.input)
 			if test.wantErr {
@@ -210,6 +211,7 @@ func TestOfferRegulatoryArrayScansRejectMalformedValues(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
 			if err := test.scan([]byte(`[42]`)); err == nil {
 				t.Fatal("malformed regulatory array unexpectedly scanned")
 			}
