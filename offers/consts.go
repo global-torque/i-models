@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type OfferT string
@@ -359,24 +360,63 @@ type OfferRegTypesT []OfferRegTypeT
 type OfferJurisdictionsT []OfferJurisdictionT
 type OfferingModesT []OfferingModeT
 
+var errScanOfferStringSlice = errors.New("scan offer string slice")
+
 func scanOfferStringSlice(value any) ([]string, error) {
 	var raw []byte
 	switch val := value.(type) {
 	case nil:
-		return nil, nil
+		return nil, fmt.Errorf("%w: SQL value is NULL", errScanOfferStringSlice)
 	case []byte:
 		raw = val
 	case string:
 		raw = []byte(val)
 	default:
-		return nil, fmt.Errorf("cannot scan %T into JSON string slice", value)
+		return nil, fmt.Errorf("%w: cannot scan %T into JSON string slice", errScanOfferStringSlice, value)
 	}
 
 	var values []string
 	if err := json.Unmarshal(raw, &values); err != nil {
-		return nil, fmt.Errorf("decode JSON string slice: %w", err)
+		return nil, fmt.Errorf("scan offer string slice: decode JSON string slice: %w", err)
+	}
+	if err := validateOfferStringSlice(values); err != nil {
+		return nil, fmt.Errorf("%w: %w", errScanOfferStringSlice, err)
 	}
 	return values, nil
+}
+
+func validateOfferStringSlice[T ~string](values []T) error {
+	if values == nil {
+		return errors.New("JSON value must be a non-null, non-empty array")
+	}
+	if len(values) == 0 {
+		return errors.New("JSON array must not be empty")
+	}
+
+	seen := make(map[string]int, len(values))
+	for index, value := range values {
+		text := string(value)
+		if strings.TrimSpace(text) == "" {
+			return fmt.Errorf("element %d must not be blank", index)
+		}
+		if previous, ok := seen[text]; ok {
+			return fmt.Errorf("element %d duplicates element %d (%q)", index, previous, text)
+		}
+		seen[text] = index
+	}
+	return nil
+}
+
+func encodeOfferStringSlice[T ~string](values []T, field string) (driver.Value, error) {
+	if err := validateOfferStringSlice(values); err != nil {
+		return nil, fmt.Errorf("encode %s: %w", field, err)
+	}
+
+	encoded, err := json.Marshal(values)
+	if err != nil {
+		return nil, fmt.Errorf("encode %s: %w", field, err)
+	}
+	return encoded, nil
 }
 
 func (values *OfferRegTypesT) Scan(value any) error {
@@ -392,11 +432,7 @@ func (values *OfferRegTypesT) Scan(value any) error {
 }
 
 func (values OfferRegTypesT) Value() (driver.Value, error) {
-	encoded, err := json.Marshal(values)
-	if err != nil {
-		return nil, fmt.Errorf("encode offer regulatory types: %w", err)
-	}
-	return encoded, nil
+	return encodeOfferStringSlice(values, "offer regulatory types")
 }
 
 func (values *OfferJurisdictionsT) Scan(value any) error {
@@ -412,11 +448,7 @@ func (values *OfferJurisdictionsT) Scan(value any) error {
 }
 
 func (values OfferJurisdictionsT) Value() (driver.Value, error) {
-	encoded, err := json.Marshal(values)
-	if err != nil {
-		return nil, fmt.Errorf("encode offer jurisdictions: %w", err)
-	}
-	return encoded, nil
+	return encodeOfferStringSlice(values, "offer jurisdictions")
 }
 
 func (values *OfferingModesT) Scan(value any) error {
@@ -432,11 +464,7 @@ func (values *OfferingModesT) Scan(value any) error {
 }
 
 func (values OfferingModesT) Value() (driver.Value, error) {
-	encoded, err := json.Marshal(values)
-	if err != nil {
-		return nil, fmt.Errorf("encode offering modes: %w", err)
-	}
-	return encoded, nil
+	return encodeOfferStringSlice(values, "offering modes")
 }
 
 type OfferJurisdictionT string

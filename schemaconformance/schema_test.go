@@ -133,6 +133,8 @@ var persistedModels = []modelSpec{ //nolint:gochecknoglobals // This is the cano
 	{name: "Wallet", model: wallets.Wallet{}},
 }
 
+// Active offer routes are JSONB arrays; offer_reg_type_t survives only as
+// migration-owned history, so its labels intentionally differ from current vocabulary.
 var persistedEnums = map[string][]string{ //nolint:gochecknoglobals // PostgreSQL enum contract registry.
 	"accreditation_t":                           enumStrings(investments.AllAccreditationT()),
 	"comment_related_t":                         enumStrings(offers.AllCommentRelatedT()),
@@ -172,7 +174,6 @@ var persistedEnums = map[string][]string{ //nolint:gochecknoglobals // PostgreSQ
 	"notification_status_t":                     enumStrings(notifications.AllNotificationStatusT()),
 	"notification_type_t":                       enumStrings(notifications.AllNotificationTypeT()),
 	"offer_jurisdiction_t":                      enumStrings(offers.AllOfferJurisdictionT()),
-	"offer_reg_type_t":                          enumStrings(offers.AllOfferRegTypeT()),
 	"offer_security_type_t":                     enumStrings(offers.AllOfferSecurityTypeT()),
 	"offer_t":                                   enumStrings(offers.AllOfferT()),
 	"offering_mode_t":                           enumStrings(offers.AllOfferingModeT()),
