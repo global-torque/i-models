@@ -136,6 +136,87 @@ func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *tes
 	}
 }
 
+func TestOfferRegTypesScanValidation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		input   any
+		want    []string
+		wantErr bool
+	}{
+		{
+			name:  "unknown strings preserve order",
+			input: []byte(`["future_route","legacy value"]`),
+			want:  []string{"future_route", "legacy value"},
+		},
+		{name: "SQL nil", input: nil, wantErr: true},
+		{name: "JSON null", input: []byte(`null`), wantErr: true},
+		{name: "empty array", input: []byte(`[]`), wantErr: true},
+		{name: "blank string", input: []byte(`[""]`), wantErr: true},
+		{name: "whitespace string", input: []byte(`[" \t"]`), wantErr: true},
+		{name: "duplicate string", input: []byte(`["future_route","future_route"]`), wantErr: true},
+		{name: "scalar", input: []byte(`"future_route"`), wantErr: true},
+		{name: "object", input: []byte(`{"value":"future_route"}`), wantErr: true},
+		{name: "non-string element", input: []byte(`[42]`), wantErr: true},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			var values OfferRegTypesT
+			err := values.Scan(test.input)
+			if test.wantErr {
+				if err == nil {
+					t.Fatal("OfferRegTypesT.Scan unexpectedly succeeded")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("OfferRegTypesT.Scan failed: %v", err)
+			}
+			got := make([]string, len(values))
+			for index, value := range values {
+				got[index] = string(value)
+			}
+			if !reflect.DeepEqual(got, test.want) {
+				t.Fatalf("OfferRegTypesT.Scan changed values: got %#v, want %#v", got, test.want)
+			}
+		})
+	}
+}
+
+func TestOfferRegulatoryArrayScansRejectMalformedValues(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		scan func(any) error
+	}{
+		{
+			name: "offer jurisdiction",
+			scan: func(value any) error {
+				var values OfferJurisdictionsT
+				return values.Scan(value)
+			},
+		},
+		{
+			name: "offering mode",
+			scan: func(value any) error {
+				var values OfferingModesT
+				return values.Scan(value)
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.scan([]byte(`[42]`)); err == nil {
+				t.Fatal("malformed regulatory array unexpectedly scanned")
+			}
+		})
+	}
+}
+
 func TestOfferShareFieldsUseExactJSONStrings(t *testing.T) {
 	t.Parallel()
 

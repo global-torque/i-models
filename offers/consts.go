@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type OfferT string
@@ -363,18 +364,40 @@ func scanOfferStringSlice(value any) ([]string, error) {
 	var raw []byte
 	switch val := value.(type) {
 	case nil:
-		return nil, nil
+		return nil, errors.New("scan offer string slice: SQL value is NULL")
 	case []byte:
 		raw = val
 	case string:
 		raw = []byte(val)
 	default:
-		return nil, fmt.Errorf("cannot scan %T into JSON string slice", value)
+		return nil, fmt.Errorf("scan offer string slice: cannot scan %T into JSON string slice", value)
 	}
 
 	var values []string
 	if err := json.Unmarshal(raw, &values); err != nil {
-		return nil, fmt.Errorf("decode JSON string slice: %w", err)
+		return nil, fmt.Errorf("scan offer string slice: decode JSON string slice: %w", err)
+	}
+	if values == nil {
+		return nil, errors.New("scan offer string slice: JSON value must be a non-null, non-empty array")
+	}
+	if len(values) == 0 {
+		return nil, errors.New("scan offer string slice: JSON array must not be empty")
+	}
+
+	seen := make(map[string]int, len(values))
+	for index, value := range values {
+		if strings.TrimSpace(value) == "" {
+			return nil, fmt.Errorf("scan offer string slice: element %d must not be blank", index)
+		}
+		if previous, ok := seen[value]; ok {
+			return nil, fmt.Errorf(
+				"scan offer string slice: element %d duplicates element %d (%q)",
+				index,
+				previous,
+				value,
+			)
+		}
+		seen[value] = index
 	}
 	return values, nil
 }
