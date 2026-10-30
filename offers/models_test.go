@@ -3,43 +3,221 @@ package offers
 import (
 	"encoding/json"
 	"reflect"
+	"strings"
 	"testing"
 )
 
-func TestOfferRegulatoryArraysPreserveOrderThroughJSONAndDatabaseScanning(t *testing.T) {
+func TestOfferRegulatoryArraysPreserveOrderThroughJSON(t *testing.T) {
 	t.Parallel()
 
-	model := OfferOffer{
-		RegType:           OfferRegTypesT{OfferRegTypeTUSRegS, OfferRegTypeTUSRegD506B},
-		OfferJurisdiction: OfferJurisdictionsT{OfferJurisdictionTCH, OfferJurisdictionTUS},
-		OfferingMode:      OfferingModesT{OfferingModeTOffshore, OfferingModeTPrivatePlacement},
+	tests := []struct {
+		name       string
+		model      OfferOffer
+		jsonField  string
+		jsonValues []any
+	}{
+		{
+			name: "reg_type",
+			model: OfferOffer{
+				RegType: OfferRegTypesT{
+					OfferRegTypeTUSRegS,
+					OfferRegTypeTUSRegD506B,
+				},
+			},
+			jsonField:  "reg_type",
+			jsonValues: []any{"US_REG_S", "US_REG_D_506B"},
+		},
+		{
+			name: "offer_jurisdiction",
+			model: OfferOffer{
+				OfferJurisdiction: OfferJurisdictionsT{
+					OfferJurisdictionTCH,
+					OfferJurisdictionTUS,
+				},
+			},
+			jsonField:  "offer_jurisdiction",
+			jsonValues: []any{"CH", "US"},
+		},
+		{
+			name: "offering_mode",
+			model: OfferOffer{
+				OfferingMode: OfferingModesT{
+					OfferingModeTOffshore,
+					OfferingModeTPrivatePlacement,
+				},
+			},
+			jsonField:  "offering_mode",
+			jsonValues: []any{"offshore", "private_placement"},
+		},
 	}
 
-	encoded, err := json.Marshal(model)
-	if err != nil {
-		t.Fatalf("marshal offer: %v", err)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			encoded, err := json.Marshal(test.model)
+			if err != nil {
+				t.Fatalf("marshal offer: %v", err)
+			}
+			var payload map[string]any
+			if err := json.Unmarshal(encoded, &payload); err != nil {
+				t.Fatalf("unmarshal offer JSON: %v", err)
+			}
+			if got := payload[test.jsonField]; !reflect.DeepEqual(got, test.jsonValues) {
+				t.Fatalf("JSON order changed: got %#v, want %#v", got, test.jsonValues)
+			}
+		})
 	}
-	var payload map[string]any
-	if err := json.Unmarshal(encoded, &payload); err != nil {
-		t.Fatalf("unmarshal offer JSON: %v", err)
+}
+
+type offerRegulatoryArrayAdapter struct {
+	name  string
+	field string
+	scan  func(any) ([]string, error)
+	value func([]string) (any, error)
+}
+
+func offerRegulatoryStrings[T ~string](values []T) []string {
+	strings := make([]string, len(values))
+	for index, value := range values {
+		strings[index] = string(value)
 	}
-	if got, want := payload["reg_type"], []any{"US_REG_S", "US_REG_D_506B"}; !reflect.DeepEqual(got, want) {
-		t.Fatalf("reg_type order changed: got %#v, want %#v", got, want)
+	return strings
+}
+
+func offerRegulatoryValues[T ~string](values []string) []T {
+	if values == nil {
+		return nil
 	}
 
-	var regTypes OfferRegTypesT
-	if err := regTypes.Scan([]byte(`["US_REG_S","US_REG_D_506B"]`)); err != nil {
-		t.Fatalf("scan reg_type: %v", err)
+	result := make([]T, len(values))
+	for index, value := range values {
+		result[index] = T(value)
 	}
-	if !reflect.DeepEqual(regTypes, model.RegType) {
-		t.Fatalf("scanned reg_type changed: got %#v, want %#v", regTypes, model.RegType)
+	return result
+}
+
+func offerRegulatoryArrayAdapters() []offerRegulatoryArrayAdapter {
+	return []offerRegulatoryArrayAdapter{
+		{
+			name: "reg_type", field: "offer regulatory types",
+			scan: func(value any) ([]string, error) {
+				var values OfferRegTypesT
+				if err := values.Scan(value); err != nil {
+					return nil, err
+				}
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferRegTypesT(offerRegulatoryValues[OfferRegTypeT](values)).Value()
+			},
+		},
+		{
+			name: "offer_jurisdiction", field: "offer jurisdictions",
+			scan: func(value any) ([]string, error) {
+				var values OfferJurisdictionsT
+				if err := values.Scan(value); err != nil {
+					return nil, err
+				}
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferJurisdictionsT(offerRegulatoryValues[OfferJurisdictionT](values)).Value()
+			},
+		},
+		{
+			name: "offering_mode", field: "offering modes",
+			scan: func(value any) ([]string, error) {
+				var values OfferingModesT
+				if err := values.Scan(value); err != nil {
+					return nil, err
+				}
+				return offerRegulatoryStrings(values), nil
+			},
+			value: func(values []string) (any, error) {
+				return OfferingModesT(offerRegulatoryValues[OfferingModeT](values)).Value()
+			},
+		},
 	}
-	value, err := model.OfferJurisdiction.Value()
-	if err != nil {
-		t.Fatalf("value offer_jurisdiction: %v", err)
+}
+
+func TestOfferRegulatoryArraysValidateStructure(t *testing.T) {
+	t.Parallel()
+
+	validValues := []string{" future_route ", "legacy value"}
+	validJSON := `[" future_route ","legacy value"]`
+	scanInvalid := []struct {
+		name  string
+		input any
+	}{
+		{name: "SQL nil", input: nil},
+		{name: "unsupported SQL type", input: 42},
+		{name: "invalid JSON", input: []byte(`not-json`)},
+		{name: "JSON null", input: []byte(`null`)},
+		{name: "empty array", input: []byte(`[]`)},
+		{name: "blank string", input: []byte(`[""]`)},
+		{name: "whitespace string", input: []byte(`[" \t"]`)},
+		{name: "duplicate string", input: []byte(`["future_route","future_route"]`)},
+		{name: "scalar", input: []byte(`"future_route"`)},
+		{name: "object", input: []byte(`{"value":"future_route"}`)},
+		{name: "non-string element", input: []byte(`[42]`)},
 	}
-	if got, want := string(value.([]byte)), `["CH","US"]`; got != want {
-		t.Fatalf("offer_jurisdiction order changed: got %q, want %q", got, want)
+	valueInvalid := []struct {
+		name  string
+		input []string
+	}{
+		{name: "nil", input: nil},
+		{name: "empty array", input: []string{}},
+		{name: "blank string", input: []string{""}},
+		{name: "whitespace string", input: []string{" \t"}},
+		{name: "duplicate string", input: []string{"future_route", "future_route"}},
+	}
+
+	for _, adapter := range offerRegulatoryArrayAdapters() {
+		adapter := adapter
+		t.Run(adapter.name, func(t *testing.T) {
+			t.Run("valid ordered unknown strings", func(t *testing.T) {
+				scanned, err := adapter.scan([]byte(validJSON))
+				if err != nil {
+					t.Fatalf("scan: %v", err)
+				}
+				if !reflect.DeepEqual(scanned, validValues) {
+					t.Fatalf("scan changed values: got %#v, want %#v", scanned, validValues)
+				}
+
+				encoded, err := adapter.value(validValues)
+				if err != nil {
+					t.Fatalf("value: %v", err)
+				}
+				got, ok := encoded.([]byte)
+				if !ok {
+					t.Fatalf("value returned %T, want []byte", encoded)
+				}
+				if string(got) != validJSON {
+					t.Fatalf("value changed order or text: got %q, want %q", got, validJSON)
+				}
+			})
+
+			for _, test := range scanInvalid {
+				test := test
+				t.Run("scan/"+test.name, func(t *testing.T) {
+					if _, err := adapter.scan(test.input); err == nil {
+						t.Fatal("scan unexpectedly succeeded")
+					}
+				})
+			}
+
+			for _, test := range valueInvalid {
+				test := test
+				t.Run("value/"+test.name, func(t *testing.T) {
+					_, err := adapter.value(test.input)
+					if err == nil {
+						t.Fatal("value unexpectedly succeeded")
+					}
+					if !strings.Contains(err.Error(), adapter.field) {
+						t.Fatalf("value error lost field context: %v", err)
+					}
+				})
+			}
+		})
 	}
 }
 
