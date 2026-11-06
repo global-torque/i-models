@@ -1,0 +1,29 @@
+{
+  "id": "6d0aaf23-d5ea-4ed5-b020-60fb9ba72155",
+  "version": 1,
+  "action": "offer.published.v1",
+  "sender": "postgres-offer-publication-trigger",
+  "object_name": "offer",
+  "object_ref": "42",
+  "object_id": 42,
+  "occurred_at": "2026-11-05T10:00:00.000000Z",
+  "changed_fields": ["status"],
+  "data": {
+    "id": 42, "user_id": 17, "image_link_id": null,
+    "legal_representative_id": null, "platform_representative_id": null,
+    "site_id": 9007199254740993, "data_room_group_id": null,
+    "name": "Series A", "legal_name": "", "slug": "series-a", "title": "",
+    "seo_title": "", "seo_description": "", "website": "", "state": "", "city": "",
+    "address1": "", "address2": "", "zip_code": "", "country": "US", "entity_id": "",
+    "ticker": "", "esign_id": null, "twitter": "", "facebook": "", "github": "",
+    "instagram": "", "telegram": "", "linkedin": "", "mastodon": "",
+    "status": "published", "security_type": "equity", "instrument_classification": "equity",
+    "offering_currency": "USD", "tokenization_engine": "none", "tokenization_model": "none_not_tokenized",
+    "fund_structure": "open_ended", "min_investment": 1.000000000000000001,
+    "valuation": 0, "total_shares": 0, "price_per_share": 10, "subscribed_shares": 0,
+    "confirmed_shares": 0, "start_at": null, "close_at": "-infinity", "data": {}, "security_info": {},
+    "reg_type": ["US_REG_D_506B"], "offer_jurisdiction": ["US"], "offering_mode": ["private_placement"],
+    "investor_eligibility": ["accredited"], "marketed_jurisdictions": ["US"], "regulated_activities": [],
+    "approved_at": "-infinity", "created_at": "2026-11-05T10:00:00+00:00", "updated_at": "2026-11-05T10:00:00+00:00"
+  }
+}
